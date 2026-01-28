@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Emoji Match</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="game-container">
+        <!-- Header -->
+        <header>
+            <h1>Emoji Match</h1>
+            <p>Mimic the face!</p>
+        </header>
+
+        <!-- Main Game Stage -->
+        <main class="stage">
+            <div class="target-emoji" id="target-emoji">👀</div>
+            <div class="webcam-wrapper">
+                <video id="webcam" autoplay playsinline></video>
+                <canvas id="canvas"></canvas>
+            </div>
+
+            <!-- Live Score Bar -->
+            <div class="score-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="score-bar"></div>
+                </div>
+                <div class="score-label">MATCH: <span id="score-val">0</span>%</div>
+            </div>
+        </main>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button id="start-btn" class="btn primary">Start Game</button>
+            <button id="snapshot-btn" class="btn accent" disabled>📸 Judge Me</button>
+            <button id="next-btn" class="btn secondary" disabled>🔀 Next</button>
+            <button id="stop-btn" class="btn secondary" disabled>Stop</button>
+        </div>
+
+        <!-- Countdown Overlay -->
+        <div id="countdown-overlay" class="hidden">3</div>
+
+        <!-- Transcript / Status -->
+        <div class="transcript" id="transcript">
+            Ready to play...
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>

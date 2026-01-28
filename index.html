@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Webcam Narrator</title>
+
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <h1 id="app-title">AI Webcam Narrator 🎬</h1>
+    <p class="subtitle" id="app-subtitle">Choose your narrator style</p>
+
+    <!-- Mode Selector -->
+    <div class="mode-selector">
+        <button class="mode-btn" data-mode="roast" style="display: none;">
+            <span class="mode-icon">🔥</span>
+            <span class="mode-label">Gemini Live</span>
+            <span class="mode-desc">Live reactions</span>
+        </button>
+        <button class="mode-btn active" data-mode="attenborough">
+            <span class="mode-icon">🎙️</span>
+            <span class="mode-label">Nature Cam</span>
+            <span class="mode-desc">Live narration</span>
+        </button>
+        <button class="mode-btn" data-mode="slam_poet">
+            <span class="mode-icon">🍷</span>
+            <span class="mode-label">Poetry Cam</span>
+            <span class="mode-desc">Bad rhymes</span>
+        </button>
+    </div>
+
+    <!-- Generic Fallback Toggle -->
+    <div class="toggle-container hidden" id="generic-toggle-container" style="display: none !important;">
+        <label class="switch">
+            <input type="checkbox" id="generic-toggle">
+            <span class="slider round"></span>
+        </label>
+        <span class="toggle-label">Generic Descriptions (Fallback)</span>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Webcam Feed -->
+        <div class="video-container">
+            <video id="webcam" autoplay playsinline></video>
+            <canvas id="snapshot-canvas"></canvas>
+            <div class="flash-overlay" id="flash"></div>
+            <div class="live-indicator" id="live-indicator">● LIVE</div>
+        </div>
+
+        <!-- Action Button -->
+        <button id="action-btn" disabled>Loading...</button>
+
+        <!-- Connection Status -->
+        <div class="status">
+            <div class="status-dot" id="status-dot"></div>
+            <span id="status-text">Initializing...</span>
+        </div>
+
+        <!-- Output -->
+        <div class="roast-container">
+            <div class="roast-label" id="output-label">🎤 The Roast</div>
+            <div id="roast-text" class="waiting">Waiting for your pose...</div>
+        </div>
+    </div>
+
+    <!-- Background Audio (Placeholder for Lyria) -->
+    <audio id="bg-music" loop>
+        <source src="assets/bg-beat.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Application Script -->
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>
