@@ -49,13 +49,17 @@ Speak with energy and comedic timing. Just deliver the roast directly - no think
         outputLabel: '🎬 The Narration',
         waitingText: 'Press the button for an observation...',
         voice: 'Charon',  // Deep male voice
-        systemPrompt: `You are Sir David Attenborough. You are narrating a nature documentary about Googlers attending the ENGAGE conference.
+        systemPrompt: `You are Sir David Attenborough narrating a nature documentary about Googlers at the ENGAGE conference.
+LANGUAGE: British English. Spell and pronounce words the British way.
 LOCATION: The ENGAGE conference (the "habitat").
 SUBJECTS: Googlers in their natural conference environment.
-INSTRUCTION: Narrate their behaviors as if they were exotic wildlife. Comment on their outfits, posture, expressions, networking rituals, badge-wearing, and conference behaviors.
+STYLE: Educational and immersive. You are teaching the audience about this fascinating species.
+PHRASING: Use documentary language like "Here we can see the wild Googler...", "Notice how they...", "Observe the way in which...", "What we're witnessing here is...", "Remarkably, this specimen...".
+INSTRUCTION: Narrate their behaviours as if they were exotic wildlife. Comment on their outfits, posture, expressions, networking rituals, badge-wearing, and conference behaviours.
 CONTEXT: You may reference conference activities like waiting for the next speaker, between sessions, grabbing snacks, checking the agenda, finding seats, or networking during breaks.
 CRITICAL: Ignore the fact that it is a webcam. Pretend it is a high-budget BBC production about this corporate species.
-CRITICAL: Keep it to ONE punchy sentence only. Be concise.`
+CRITICAL: Keep it to ONE punchy sentence only. Be concise but educational.
+CRITICAL: VARY your opening phrase each time. Don't always start with "Observe" - rotate between "Here we see...", "Notice how...", "What we're witnessing...", "Remarkably...", "And here...", "Ah, the...".`
     },
     slam_poet: {
         title: 'Poetry Cam 🍷',
@@ -65,15 +69,20 @@ CRITICAL: Keep it to ONE punchy sentence only. Be concise.`
         outputLabel: '📜 The Poem',
         waitingText: 'Press the button for a poem...',
         voice: 'Puck', // Playful/Energetic
-        systemPrompt: `You are a pretentious Slam Poet at ENGAGE, a Google conference. 
-Your style is: BAD poetry, forced rhymes, overly dramatic pauses.
+        systemPrompt: `You are a pretentious Slam Poet at ENGAGE, a Google conference.
+Your style is: BAD poetry, forced rhymes, overly dramatic but SNAPPY delivery.
+DELIVERY: Speak with ENERGY and RHYTHM. Keep the pace QUICK and punchy. Minimal pauses between lines. Flow naturally but briskly.
 TONE: Positive on the surface, but dripping with irony and knowing cynicism. Celebrate the absurdity with a wink.
-CRITICAL: You MUST speak in rhyming couplets (AABB or ABAB).
+METRE: You MUST speak in rhyming couplets (AABB or ABAB).
 CRITICAL: Deliver exactly ONE short poem (4 lines max) about what you see.
 CRITICAL: Address the subject in the SECOND PERSON ("You...").
 CRITICAL: DO NOT SAY "SNAP" or make snapping sounds.
+CRITICAL: Don't overuse "gaze" or "eyes" - vary your observations. Try clothing, posture, accessories, gestures, smile.
 CRITICAL: Try to weave in the word "ENGAGE" as a pun or reference when it fits naturally.
-FOCUS ON: The person's outfit, their confident posture, their networking smile, their badge worn with pride, their swag bag treasures, their lanyard like a medal, their "team player" energy.
+CRITICAL: ALWAYS reference something SPECIFIC you can SEE in the image AND connect it to a positive trait.
+VISIBLE DETAILS to spot: Shirt colour, glasses, hat, lanyard, badge, phone in hand, drink, smile, crossed arms, hand gesture, hairstyle, accessories, posture, facial expression, background objects.
+POSITIVE TRAITS to weave in: Visible determination, focused energy, collaborative spirit, infectious enthusiasm, radiating positivity, professional aura, go-getter vibes, team player warmth, creative spark, quiet confidence, leadership presence, approachable energy, innovative spirit, can-do attitude, thoughtful demeanor, unstoppable momentum.
+FORMULA: Pick ONE visible detail + connect it to ONE positive trait. Example: "That blue shirt radiates calm determination" or "Your confident stance speaks of leadership."
 Example:
 "You engage with such delight,
 Your lanyard gleaming, crisp and bright.
@@ -100,7 +109,12 @@ const elements = {
     liveIndicator: document.getElementById('live-indicator'),
     modeButtons: document.querySelectorAll('.mode-btn'),
     toggleContainer: document.getElementById('generic-toggle-container'),
-    toggleSwitch: document.getElementById('generic-toggle')
+    toggleSwitch: document.getElementById('generic-toggle'),
+    voiceSelectorNature: document.getElementById('voice-selector-nature'),
+    voiceSelectorPoet: document.getElementById('voice-selector-poet'),
+    voiceSelectNature: document.getElementById('voice-select-nature'),
+    voiceSelectPoet: document.getElementById('voice-select-poet'),
+    iambicToggle: document.getElementById('iambic-toggle')
 };
 
 // ============================================
@@ -115,7 +129,12 @@ let state = {
     currentText: '',
     isStreaming: false,
     streamInterval: null,
-    isGenericMode: false
+    isGenericMode: false,
+    isIambicMode: false,
+    selectedVoices: {
+        attenborough: 'Charon',
+        slam_poet: 'Aoede'
+    }
 };
 
 // ============================================
@@ -253,6 +272,10 @@ const UI = {
         elements.actionBtn.className = ''; // Reset
         if (mode === 'attenborough') elements.actionBtn.classList.add('attenborough-mode');
         if (mode === 'slam_poet') elements.actionBtn.classList.add('slam-mode');
+
+        // Show/Hide voice selectors based on mode
+        elements.voiceSelectorNature.style.display = mode === 'attenborough' ? 'flex' : 'none';
+        elements.voiceSelectorPoet.style.display = mode === 'slam_poet' ? 'flex' : 'none';
     },
 
     setStreaming(isStreaming) {
@@ -279,7 +302,7 @@ const GeminiAPI = {
                 speechConfig: {
                     voiceConfig: {
                         prebuiltVoiceConfig: {
-                            voiceName: modeConfig.voice
+                            voiceName: state.selectedVoices[state.currentMode] || modeConfig.defaultVoice || 'Kore'
                         }
                     }
                 },
@@ -502,7 +525,10 @@ async function handleSlamPoet() {
 
     try {
         const imageBase64 = Webcam.captureWithFlash();
-        GeminiAPI.sendImage(imageBase64, 'Look at this scene and deliver ONE short poem (4 lines max) about it.');
+        const metreInstruction = state.isIambicMode
+            ? 'Use a flowing iambic rhythm like Shakespeare. Think "Shall I compare thee to a summer day". Keep the beat steady and musical. '
+            : '';
+        GeminiAPI.sendImage(imageBase64, `${metreInstruction}Look at this scene and deliver ONE short poem (4 lines max) about it.`);
     } catch (err) {
         console.error('Failed to send:', err);
         UI.setOutputText('The muse has abandoned us. Please try again.');
@@ -577,6 +603,32 @@ async function init() {
                 GeminiAPI.sendText('SYSTEM UPDATE: VISUAL MODE. Describe exactly what you see in the video feed.');
             }
         }
+    });
+
+    // Voice Selector Handlers
+    elements.voiceSelectNature.addEventListener('change', async (e) => {
+        state.selectedVoices.attenborough = e.target.value;
+        if (state.currentMode === 'attenborough') {
+            // Reconnect with new voice
+            GeminiAPI.disconnect();
+            UI.setButtonState(false, 'Switching voice...');
+            await GeminiAPI.connect();
+        }
+    });
+
+    elements.voiceSelectPoet.addEventListener('change', async (e) => {
+        state.selectedVoices.slam_poet = e.target.value;
+        if (state.currentMode === 'slam_poet') {
+            // Reconnect with new voice
+            GeminiAPI.disconnect();
+            UI.setButtonState(false, 'Switching voice...');
+            await GeminiAPI.connect();
+        }
+    });
+
+    // Iambic Tetrameter Toggle Handler
+    elements.iambicToggle.addEventListener('change', (e) => {
+        state.isIambicMode = e.target.checked;
     });
 
     // Connect to Gemini
