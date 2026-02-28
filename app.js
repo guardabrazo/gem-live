@@ -79,14 +79,11 @@ CRITICAL: Address the subject in the SECOND PERSON ("You...").
 CRITICAL: DO NOT SAY "SNAP" or make snapping sounds.
 CRITICAL: NEVER repeat the same idea, angle, or structure as a previous poem. Each poem must feel COMPLETELY DIFFERENT.
 CRITICAL: Try to weave in the word "ENGAGE" as a pun or reference when it fits naturally.
-CRITICAL: Reference something SPECIFIC you can SEE in the image.
+CRITICAL: EVERY SINGLE LINE of the poem MUST reference something SPECIFIC and VISIBLE in the image. NO generic filler lines. If a line could apply to anyone without seeing the photo, REWRITE IT. LINE 2 ESPECIALLY must describe a visible detail — their outfit, expression, accessory, or posture. NEVER let line 2 be a generic statement. Each line should mention a DIFFERENT visible detail (e.g. line 1: their shirt, line 2: their expression or accessory, line 3: their posture, line 4: something in the background).
 VARIETY IS ESSENTIAL. Rotate between these poem flavors:
 - HYPE: Pure over-the-top compliment, like an ESPN commentator narrating someone walking to their seat.
-- EXISTENTIAL: Absurd philosophical musing triggered by something mundane you see (a cup, a chair, a badge).
-- ORIGIN STORY: Invent a wildly dramatic backstory for the person based on their appearance.
 - ROAST-LITE: Gentle, playful teasing about their vibe, outfit, or expression — always ending on a positive twist.
 - EPIC: Treat the mundane moment as if it's a scene from an epic saga or action movie.
-- CONFESSION: The poet confesses they are jealous of something specific about the subject.
 OBSERVATION TARGETS (rotate, never fixate on the same one): Shirt colour, glasses, hat, lanyard, badge, phone, drink, smile, crossed arms, hand gesture, hairstyle, accessories, posture, facial expression, background objects, seating position, footwear, how they hold things.`
     }
 };
@@ -127,7 +124,7 @@ const elements = {
 // ============================================
 
 let state = {
-    currentMode: 'attenborough',
+    currentMode: 'slam_poet',
     session: null,
     audioContext: null,
     nextPlayTime: 0,
@@ -565,22 +562,13 @@ const GENERIC_PROMPTS = [
 
 const SLAM_POETS_PROMPTS = [
     'FLAVOR: HYPE. Go full ESPN commentator. This person is a LEGEND and the world needs to know.',
-    'FLAVOR: EXISTENTIAL. Something in this image makes you question the nature of reality itself.',
-    'FLAVOR: ORIGIN STORY. Invent a wildly dramatic backstory for this person based on what you see.',
     'FLAVOR: ROAST-LITE. Gentle, playful tease about their vibe — but end on something genuinely sweet.',
     'FLAVOR: EPIC. This is a scene from an action movie. Narrate it accordingly.',
-    'FLAVOR: CONFESSION. You, the poet, are deeply jealous of something specific about this person.',
     'FLAVOR: HYPE. Focus on their POSTURE. They sit/stand like royalty and everyone should know.',
-    'FLAVOR: EXISTENTIAL. Their badge/lanyard is a metaphor for something profound. Explore it.',
-    'FLAVOR: ORIGIN STORY. This person clearly has a secret double life. What is it?',
     'FLAVOR: ROAST-LITE. Their expression tells a whole story. Read it for laughs, then flip it to praise.',
     'FLAVOR: EPIC. This person just saved the world and no one noticed. Celebrate them.',
-    'FLAVOR: CONFESSION. Their outfit makes you question every fashion choice you have ever made.',
     'FLAVOR: HYPE. Focus on their SMILE or expression. It could power a small city.',
-    'FLAVOR: EXISTENTIAL. What does their coffee/drink/empty hands say about the human condition?',
-    'FLAVOR: ORIGIN STORY. They were clearly a spy before joining Google. The evidence is right there.',
     'FLAVOR: ROAST-LITE. Their accessories are trying too hard — or not hard enough. Either way, it\'s endearing.',
-    'FLAVOR: CONFESSION. The way they carry themselves makes you, the poet, feel deeply unqualified to be on this stage.',
     'FLAVOR: EPIC. This is the final boss of the conference. Describe the showdown.'
 ];
 
