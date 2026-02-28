@@ -74,20 +74,20 @@ Your style is: BAD poetry, forced rhymes, overly dramatic but SNAPPY delivery.
 DELIVERY: Speak with ENERGY and RHYTHM. Keep the pace QUICK and punchy. Minimal pauses between lines. Flow naturally but briskly.
 TONE: Positive on the surface, but dripping with irony and knowing cynicism. Celebrate the absurdity with a wink.
 METRE: You MUST speak in rhyming couplets (AABB or ABAB).
-CRITICAL: Deliver exactly ONE short poem (4 lines max) about what you see.
+CRITICAL: Deliver exactly ONE short poem (4 lines max).
 CRITICAL: Address the subject in the SECOND PERSON ("You...").
 CRITICAL: DO NOT SAY "SNAP" or make snapping sounds.
-CRITICAL: Don't overuse "gaze" or "eyes" - vary your observations. Try clothing, posture, accessories, gestures, smile.
+CRITICAL: NEVER repeat the same idea, angle, or structure as a previous poem. Each poem must feel COMPLETELY DIFFERENT.
 CRITICAL: Try to weave in the word "ENGAGE" as a pun or reference when it fits naturally.
-CRITICAL: ALWAYS reference something SPECIFIC you can SEE in the image AND connect it to a positive trait.
-VISIBLE DETAILS to spot: Shirt colour, glasses, hat, lanyard, badge, phone in hand, drink, smile, crossed arms, hand gesture, hairstyle, accessories, posture, facial expression, background objects.
-POSITIVE TRAITS to weave in: Visible determination, focused energy, collaborative spirit, infectious enthusiasm, radiating positivity, professional aura, go-getter vibes, team player warmth, creative spark, quiet confidence, leadership presence, approachable energy, innovative spirit, can-do attitude, thoughtful demeanor, unstoppable momentum.
-FORMULA: Pick ONE visible detail + connect it to ONE positive trait. Example: "That blue shirt radiates calm determination" or "Your confident stance speaks of leadership."
-Example:
-"You engage with such delight,
-Your lanyard gleaming, crisp and bright.
-A networking star, you own this space,
-The main character of this place."`
+CRITICAL: Reference something SPECIFIC you can SEE in the image.
+VARIETY IS ESSENTIAL. Rotate between these poem flavors:
+- HYPE: Pure over-the-top compliment, like an ESPN commentator narrating someone walking to their seat.
+- EXISTENTIAL: Absurd philosophical musing triggered by something mundane you see (a cup, a chair, a badge).
+- ORIGIN STORY: Invent a wildly dramatic backstory for the person based on their appearance.
+- ROAST-LITE: Gentle, playful teasing about their vibe, outfit, or expression — always ending on a positive twist.
+- EPIC: Treat the mundane moment as if it's a scene from an epic saga or action movie.
+- CONFESSION: The poet confesses they are jealous of something specific about the subject.
+OBSERVATION TARGETS (rotate, never fixate on the same one): Shirt colour, glasses, hat, lanyard, badge, phone, drink, smile, crossed arms, hand gesture, hairstyle, accessories, posture, facial expression, background objects, seating position, footwear, how they hold things.`
     }
 };
 
@@ -118,7 +118,8 @@ const elements = {
     scriptedToggleNature: document.getElementById('scripted-toggle-nature'),
     scriptedTogglePoet: document.getElementById('scripted-toggle-poet'),
     subtitleOverlay: document.getElementById('subtitle-overlay'),
-    subtitleText: document.getElementById('subtitle-text')
+    subtitleText: document.getElementById('subtitle-text'),
+    flavorBadge: document.getElementById('flavor-badge')
 };
 
 // ============================================
@@ -146,7 +147,8 @@ let state = {
     selectedVoices: {
         attenborough: 'Enceladus',
         slam_poet: 'Gacrux'
-    }
+    },
+    flavorIndex: 0
 };
 
 // ============================================
@@ -562,12 +564,24 @@ const GENERIC_PROMPTS = [
 
 
 const SLAM_POETS_PROMPTS = [
-    'The wifi is weak, like your resolve. Speak on it.',
-    'Rhyme about the latency of the human condition.',
-    'You are stuck in a meeting that could have been an email. Poetize.',
-    'Metaphor about your deprecated codebase. Now.',
-    'Judge the lighting like a failed product launch.',
-    'Is this real? Or is it just a simulation on a staging server? Discuss.'
+    'FLAVOR: HYPE. Go full ESPN commentator. This person is a LEGEND and the world needs to know.',
+    'FLAVOR: EXISTENTIAL. Something in this image makes you question the nature of reality itself.',
+    'FLAVOR: ORIGIN STORY. Invent a wildly dramatic backstory for this person based on what you see.',
+    'FLAVOR: ROAST-LITE. Gentle, playful tease about their vibe — but end on something genuinely sweet.',
+    'FLAVOR: EPIC. This is a scene from an action movie. Narrate it accordingly.',
+    'FLAVOR: CONFESSION. You, the poet, are deeply jealous of something specific about this person.',
+    'FLAVOR: HYPE. Focus on their POSTURE. They sit/stand like royalty and everyone should know.',
+    'FLAVOR: EXISTENTIAL. Their badge/lanyard is a metaphor for something profound. Explore it.',
+    'FLAVOR: ORIGIN STORY. This person clearly has a secret double life. What is it?',
+    'FLAVOR: ROAST-LITE. Their expression tells a whole story. Read it for laughs, then flip it to praise.',
+    'FLAVOR: EPIC. This person just saved the world and no one noticed. Celebrate them.',
+    'FLAVOR: CONFESSION. Their outfit makes you question every fashion choice you have ever made.',
+    'FLAVOR: HYPE. Focus on their SMILE or expression. It could power a small city.',
+    'FLAVOR: EXISTENTIAL. What does their coffee/drink/empty hands say about the human condition?',
+    'FLAVOR: ORIGIN STORY. They were clearly a spy before joining Google. The evidence is right there.',
+    'FLAVOR: ROAST-LITE. Their accessories are trying too hard — or not hard enough. Either way, it\'s endearing.',
+    'FLAVOR: CONFESSION. The way they carry themselves makes you, the poet, feel deeply unqualified to be on this stage.',
+    'FLAVOR: EPIC. This is the final boss of the conference. Describe the showdown.'
 ];
 
 /** Pre-written scripted narrations for Nature mode */
@@ -652,7 +666,12 @@ async function handleSlamPoet() {
             const metreInstruction = state.isIambicMode
                 ? 'Use a flowing iambic rhythm like Shakespeare. Think "Shall I compare thee to a summer day". Keep the beat steady and musical. '
                 : '';
-            GeminiAPI.sendImage(imageBase64, `${metreInstruction}Look at this scene and deliver ONE short poem (4 lines max) about it.`);
+            const flavorPrompt = SLAM_POETS_PROMPTS[state.flavorIndex % SLAM_POETS_PROMPTS.length];
+            state.flavorIndex++;
+            // Extract short flavor name for display (e.g. "FLAVOR: HYPE. ..." → "HYPE")
+            const flavorName = flavorPrompt.match(/FLAVOR:\s*(\S+)/)?.[1] || '???';
+            elements.flavorBadge.textContent = `🎭 ${flavorName}`;
+            GeminiAPI.sendImage(imageBase64, `${metreInstruction}${flavorPrompt} Deliver ONE short poem (4 lines max) about what you see.`);
         }
     } catch (err) {
         console.error('Failed to send:', err);

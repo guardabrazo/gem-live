@@ -177,6 +177,20 @@ input:checked+.slider:before {
     margin: 0 4px;
 }
 
+.flavor-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #feca57;
+    background: rgba(254, 202, 87, 0.12);
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(254, 202, 87, 0.3);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}
+
 .switch.small {
     width: 36px;
     height: 20px;
