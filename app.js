@@ -48,7 +48,7 @@ Speak with energy and comedic timing. Just deliver the roast directly - no think
         buttonActive: '🎬 Observing...',
         outputLabel: '🎬 The Narration',
         waitingText: 'Press the button for an observation...',
-        voice: 'Charon',  // Deep male voice
+        voice: 'Enceladus',  // Default nature voice
         systemPrompt: `You are Sir David Attenborough narrating a nature documentary about Googlers at the ENGAGE conference.
 LANGUAGE: British English. Spell and pronounce words the British way.
 LOCATION: The ENGAGE conference (the "habitat").
@@ -58,7 +58,7 @@ PHRASING: Use documentary language like "Here we can see the wild Googler...", "
 INSTRUCTION: Narrate their behaviours as if they were exotic wildlife. Comment on their outfits, posture, expressions, networking rituals, badge-wearing, and conference behaviours.
 CONTEXT: You may reference conference activities like waiting for the next speaker, between sessions, grabbing snacks, checking the agenda, finding seats, or networking during breaks.
 CRITICAL: Ignore the fact that it is a webcam. Pretend it is a high-budget BBC production about this corporate species.
-CRITICAL: Keep it to ONE punchy sentence only. Be concise but educational.
+CRITICAL: Keep it around 35 words.
 CRITICAL: VARY your opening phrase each time. Don't always start with "Observe" - rotate between "Here we see...", "Notice how...", "What we're witnessing...", "Remarkably...", "And here...", "Ah, the...".`
     },
     slam_poet: {
@@ -68,7 +68,7 @@ CRITICAL: VARY your opening phrase each time. Don't always start with "Observe" 
         buttonActive: '🍷 Performing...',
         outputLabel: '📜 The Poem',
         waitingText: 'Press the button for a poem...',
-        voice: 'Puck', // Playful/Energetic
+        voice: 'Gacrux', // Default poetry voice
         systemPrompt: `You are a pretentious Slam Poet at ENGAGE, a Google conference.
 Your style is: BAD poetry, forced rhymes, overly dramatic but SNAPPY delivery.
 DELIVERY: Speak with ENERGY and RHYTHM. Keep the pace QUICK and punchy. Minimal pauses between lines. Flow naturally but briskly.
@@ -114,7 +114,11 @@ const elements = {
     voiceSelectorPoet: document.getElementById('voice-selector-poet'),
     voiceSelectNature: document.getElementById('voice-select-nature'),
     voiceSelectPoet: document.getElementById('voice-select-poet'),
-    iambicToggle: document.getElementById('iambic-toggle')
+    iambicToggle: document.getElementById('iambic-toggle'),
+    scriptedToggleNature: document.getElementById('scripted-toggle-nature'),
+    scriptedTogglePoet: document.getElementById('scripted-toggle-poet'),
+    subtitleOverlay: document.getElementById('subtitle-overlay'),
+    subtitleText: document.getElementById('subtitle-text')
 };
 
 // ============================================
@@ -129,11 +133,19 @@ let state = {
     currentText: '',
     isStreaming: false,
     streamInterval: null,
+    subtitleTimeout: null,
+    subtitleWordQueue: [],
+    subtitleRevealTimer: null,
+    revealedWords: [],
     isGenericMode: false,
     isIambicMode: false,
+    isScriptedNature: false,
+    isScriptedPoet: false,
+    scriptedIndexNature: 0,
+    scriptedIndexPoet: 0,
     selectedVoices: {
-        attenborough: 'Charon',
-        slam_poet: 'Aoede'
+        attenborough: 'Enceladus',
+        slam_poet: 'Gacrux'
     }
 };
 
@@ -281,6 +293,76 @@ const UI = {
     setStreaming(isStreaming) {
         elements.liveIndicator.classList.toggle('active', isStreaming);
         elements.actionBtn.classList.toggle('streaming', isStreaming);
+    },
+
+    /**
+     * Queue new text for word-by-word subtitle reveal.
+     * Extracts only the newly added words and queues them.
+     */
+    queueSubtitleText(fullText) {
+        const allWords = fullText.split(/\s+/).filter(w => w.length > 0);
+        const newWords = allWords.slice(state.revealedWords.length + state.subtitleWordQueue.length);
+        if (newWords.length > 0) {
+            state.subtitleWordQueue.push(...newWords);
+            elements.subtitleOverlay.classList.add('visible');
+            // Clear any pending fade-out
+            if (state.subtitleTimeout) {
+                clearTimeout(state.subtitleTimeout);
+                state.subtitleTimeout = null;
+            }
+            // Start revealing if not already running
+            if (!state.subtitleRevealTimer) {
+                this.revealNextWord();
+            }
+        }
+    },
+
+    /** Reveal the next word in the queue with timing based on word length */
+    revealNextWord() {
+        if (state.subtitleWordQueue.length === 0) {
+            state.subtitleRevealTimer = null;
+            return;
+        }
+        const subtitleText = elements.subtitleText;
+        const prevHeight = subtitleText.offsetHeight;
+
+        const word = state.subtitleWordQueue.shift();
+        state.revealedWords.push(word);
+        subtitleText.textContent = state.revealedWords.join(' ');
+
+        // FLIP animation: smooth the vertical shift when text wraps to a new line
+        const newHeight = subtitleText.offsetHeight;
+        if (prevHeight > 0 && newHeight > prevHeight) {
+            const diff = newHeight - prevHeight;
+            subtitleText.style.transition = 'none';
+            subtitleText.style.transform = `translateY(${diff}px)`;
+            subtitleText.offsetHeight; // force reflow
+            subtitleText.style.transition = 'transform 0.3s ease-out';
+            subtitleText.style.transform = 'translateY(0)';
+        }
+
+        // Variable delay: slower for poetry mode since the voice is slower
+        const isPoetry = state.currentMode === 'slam_poet';
+        const baseDelay = isPoetry ? 220 : 160;
+        const perChar = isPoetry ? 60 : 40;
+        const delay = baseDelay + word.length * perChar;
+        state.subtitleRevealTimer = setTimeout(() => this.revealNextWord(), delay);
+    },
+
+    /** Reset the subtitle word reveal state */
+    resetSubtitle() {
+        state.subtitleWordQueue = [];
+        state.revealedWords = [];
+        if (state.subtitleRevealTimer) {
+            clearTimeout(state.subtitleRevealTimer);
+            state.subtitleRevealTimer = null;
+        }
+        elements.subtitleText.textContent = '';
+        elements.subtitleText.style.transform = '';
+    },
+
+    hideSubtitle() {
+        elements.subtitleOverlay.classList.remove('visible');
     }
 };
 
@@ -353,6 +435,7 @@ const GeminiAPI = {
                 if (part.text) {
                     state.currentText += part.text;
                     UI.setOutputText(state.currentText);
+                    UI.queueSubtitleText(state.currentText);
                 }
             }
         }
@@ -361,6 +444,7 @@ const GeminiAPI = {
         if (message.serverContent?.outputTranscription?.text) {
             state.currentText += message.serverContent.outputTranscription.text;
             UI.setOutputText(state.currentText);
+            UI.queueSubtitleText(state.currentText);
         }
 
         // Handle turn completion - re-enable button for all modes
@@ -368,6 +452,12 @@ const GeminiAPI = {
             const config = MODES[state.currentMode];
             UI.setButtonState(true, config.buttonReady);
             UI.setStreaming(false);
+
+            // Fade out subtitle after a delay
+            if (state.subtitleTimeout) clearTimeout(state.subtitleTimeout);
+            state.subtitleTimeout = setTimeout(() => {
+                UI.hideSubtitle();
+            }, 4000);
         }
     },
 
@@ -435,6 +525,8 @@ async function handleRoast() {
     state.currentText = '';
     UI.setOutputText('Analyzing your pose...', true);
     UI.setButtonState(false, MODES.roast.buttonActive);
+    UI.resetSubtitle();
+    UI.hideSubtitle();
 
     try {
         const imageBase64 = Webcam.captureWithFlash();
@@ -478,6 +570,21 @@ const SLAM_POETS_PROMPTS = [
     'Is this real? Or is it just a simulation on a staging server? Discuss.'
 ];
 
+/** Pre-written scripted narrations for Nature mode */
+const SCRIPTED_NATURE = [
+    'Behold, the noble Googler. Their brow, furrowed in quiet contemplation; for ahead of them lies a day of hunting, gathering, and most perilous of all, catching up on emails.',
+    'Once thought to exist only in legend, here we observe the Googler in their natural habitat: attending a quasi-mandatory event. See how they carry themselves, with a subdued confidence that says both "I know what I\'m doing" and "please don\'t call on me".',
+    'This Googler finds themselves among a herd, pondering the deep questions: how did we get here? What is our purpose? Is lunch thirty minutes, or do we get a full hour? Important queries, indeed.',
+    'Ahh, yes. The Googler at rest. Do not be fooled: the Googler\'s calm appearance and kind eyes belie a ferocious appetite for project management. It is said that a pod of 3 or more Googlers have been known to populate an entire spreadsheet in a matter of minutes. Nature is, indeed, a miracle.'
+];
+
+/** Pre-written scripted poems for Poetry mode */
+const SCRIPTED_POEMS = [
+    'Now here is a person who\'s keeping it real. They\'re seated and ready. They know the whole deal. From the top of their head to the soles of their sneakers, They\'re ready to hear from some special guest speakers.',
+    'Don\'t look so bewildered! This isn\'t a trick. The show\'s coming up so I\'ll keep this part quick. Your style is iconic, that is to be sure, A winning example of Google Couture!',
+    'You woke up this morning and came to this place. And now you\'ve arrived with a smile on your face. Far and wide they will all tell all the tales, Of the well-dressed Googler who\'s working in sales.'
+];
+
 /** Get a random narration prompt */
 function getRandomPrompt() {
     if (state.currentMode === 'slam_poet') {
@@ -497,13 +604,22 @@ async function handleAttenborough() {
     UI.setOutputText('Observing...', true);
     UI.setButtonState(false, MODES.attenborough.buttonActive);
     UI.setStreaming(true);
+    UI.resetSubtitle();
+    UI.hideSubtitle();
 
     try {
         const imageBase64 = Webcam.captureWithFlash();
-        const prompt = state.isGenericMode
-            ? 'IGNORE IMAGE. Invent a corporate nature scene. One sentence only.'
-            : 'Narrate what you see. One short sentence only.';
-        GeminiAPI.sendImage(imageBase64, prompt);
+
+        if (state.isScriptedNature) {
+            const script = SCRIPTED_NATURE[state.scriptedIndexNature % SCRIPTED_NATURE.length];
+            state.scriptedIndexNature++;
+            GeminiAPI.sendImage(imageBase64, `READ THIS EXACTLY, word for word, in your narration voice. Do not add or change anything: "${script}"`);
+        } else {
+            const prompt = state.isGenericMode
+                ? 'IGNORE IMAGE. Invent a corporate nature scene. One sentence only.'
+                : 'Narrate what you see in 2 vivid sentences.';
+            GeminiAPI.sendImage(imageBase64, prompt);
+        }
     } catch (err) {
         console.error('Failed to send:', err);
         UI.setOutputText('Failed to send image. Please try again.');
@@ -522,13 +638,22 @@ async function handleSlamPoet() {
     UI.setOutputText('The poet is composing...', true);
     UI.setButtonState(false, MODES.slam_poet.buttonActive);
     UI.setStreaming(true);
+    UI.resetSubtitle();
+    UI.hideSubtitle();
 
     try {
         const imageBase64 = Webcam.captureWithFlash();
-        const metreInstruction = state.isIambicMode
-            ? 'Use a flowing iambic rhythm like Shakespeare. Think "Shall I compare thee to a summer day". Keep the beat steady and musical. '
-            : '';
-        GeminiAPI.sendImage(imageBase64, `${metreInstruction}Look at this scene and deliver ONE short poem (4 lines max) about it.`);
+
+        if (state.isScriptedPoet) {
+            const script = SCRIPTED_POEMS[state.scriptedIndexPoet % SCRIPTED_POEMS.length];
+            state.scriptedIndexPoet++;
+            GeminiAPI.sendImage(imageBase64, `READ THIS EXACTLY, word for word, in your slam poet voice. Do not add or change anything: "${script}"`);
+        } else {
+            const metreInstruction = state.isIambicMode
+                ? 'Use a flowing iambic rhythm like Shakespeare. Think "Shall I compare thee to a summer day". Keep the beat steady and musical. '
+                : '';
+            GeminiAPI.sendImage(imageBase64, `${metreInstruction}Look at this scene and deliver ONE short poem (4 lines max) about it.`);
+        }
     } catch (err) {
         console.error('Failed to send:', err);
         UI.setOutputText('The muse has abandoned us. Please try again.');
@@ -629,6 +754,14 @@ async function init() {
     // Iambic Tetrameter Toggle Handler
     elements.iambicToggle.addEventListener('change', (e) => {
         state.isIambicMode = e.target.checked;
+    });
+
+    // Scripted Mode Toggle Handlers
+    elements.scriptedToggleNature.addEventListener('change', (e) => {
+        state.isScriptedNature = e.target.checked;
+    });
+    elements.scriptedTogglePoet.addEventListener('change', (e) => {
+        state.isScriptedPoet = e.target.checked;
     });
 
     // Connect to Gemini

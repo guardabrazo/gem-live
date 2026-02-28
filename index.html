@@ -42,18 +42,24 @@
     <div class="voice-selector-container" id="voice-selector-nature" style="display: none;">
         <label class="voice-label">🎤 Voice:</label>
         <select class="voice-select" id="voice-select-nature">
-            <option value="Charon" selected>Charon</option>
-            <option value="Enceladus">Enceladus</option>
+            <option value="Charon">Charon</option>
+            <option value="Enceladus" selected>Enceladus</option>
             <option value="Algieba">Algieba</option>
             <option value="Algenib">Algenib</option>
         </select>
+        <span class="toggle-divider">|</span>
+        <label class="switch small">
+            <input type="checkbox" id="scripted-toggle-nature">
+            <span class="slider round"></span>
+        </label>
+        <span class="toggle-label">Scripted</span>
     </div>
 
     <div class="voice-selector-container" id="voice-selector-poet" style="display: none;">
         <label class="voice-label">🎤 Voice:</label>
         <select class="voice-select" id="voice-select-poet">
-            <option value="Gacrux">Gacrux</option>
-            <option value="Aoede" selected>Aoede</option>
+            <option value="Gacrux" selected>Gacrux</option>
+            <option value="Aoede">Aoede</option>
             <option value="Sulafat">Sulafat</option>
             <option value="Despina">Despina</option>
         </select>
@@ -63,6 +69,12 @@
             <span class="slider round"></span>
         </label>
         <span class="toggle-label">Iambic Tetrameter</span>
+        <span class="toggle-divider">|</span>
+        <label class="switch small">
+            <input type="checkbox" id="scripted-toggle-poet">
+            <span class="slider round"></span>
+        </label>
+        <span class="toggle-label">Scripted</span>
     </div>
 
     <!-- Generic Fallback Toggle -->
@@ -82,6 +94,7 @@
             <canvas id="snapshot-canvas"></canvas>
             <div class="flash-overlay" id="flash"></div>
             <div class="live-indicator" id="live-indicator">● LIVE</div>
+            <div class="subtitle-overlay" id="subtitle-overlay"><span id="subtitle-text"></span></div>
         </div>
 
         <!-- Action Button -->
